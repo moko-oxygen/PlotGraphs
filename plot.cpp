@@ -3,21 +3,19 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <fstream>
 using namespace std;
 
-vector <char> RPN(string formula);
-double CalcResult(vector <char> converted);
-template <typename T> void VectorPrint(vector<T> converted);
+vector <char> RPN(string formula);	/* 入力された式を逆ポーランド記法に変換する */		
+template <typename T> void VectorPrint(vector<T> IsThrown);	/* 投げられたやつの中身を見るんじゃ */
+void PlotPoint(double init, double end, double interval, string formula, string filename);	/* 指定の区間、指定の刻みで式に値を入力し、得られた値をvectorで保持する */
+double CalcResult(vector <char> converted, double value);	/* 変換後の式で計算を行う */
 
 int main()
  {
- 	string formula = " (1 + x) * (3 + 7) / 5";
-
-	cout << "input = " << formula  << endl;
-	cout << "converted = "; 
-	VectorPrint(RPN(formula));
-	cout << "calculated = " << CalcResult(RPN(formula)) << endl;
-
+ 	string formula = "1/(x+1)";
+ 	string filename = "test.csv";
+ 	PlotPoint(0.0, 10.0, 0.1, formula, filename);
 	return 0;
 }	
 
@@ -101,7 +99,7 @@ vector <char> RPN(string formula)
 	return result;
 }
 
-double CalcResult(vector <char> converted)
+double CalcResult(vector <char> converted, double value)
 {
 	stack <double> calc;
 	double a;
@@ -144,18 +142,69 @@ double CalcResult(vector <char> converted)
 		}
 		else
 		{
-			calc.push((double)(converted[i] - '0'));	/* char -> int へのキャストはこれしかない（死）*/
+			if('0' <=  converted[i] && converted[i] <= '9')
+			{
+				calc.push((double)(converted[i] - '0'));	/* char -> int へのキャストはこれしかない（死）*/
+			}
+			else if(converted[i] == 'x')
+			{
+				calc.push(value);	/* 渡された値を代入 */
+			}
 		}
 	}
-
 	return calc.top();
 }
-template <typename T> void VectorPrint(vector<T> converted)
+
+void PlotPoint(double init, double end, double interval, string formula, string filename)
 {
-	for(int i = 0; i < converted.size(); i++)
+	/* 入出力を保持するベクタを持っておく */
+	vector <double> InputValueAry;
+	vector <double> OutputValueAry;
+	vector <char> converted = RPN(formula);	/* 変換後の式をRPN()に作らせて持っておく */
+	
+	double InputValue = init;	/* 入力値を初期化 */
+	
+	while(InputValue <= end)
 	{
-		cout << converted[i];
+		InputValueAry.push_back(InputValue);
+		OutputValueAry.push_back(CalcResult(converted, InputValue));
+
+		InputValue += interval;
+	}
+	cout << "--入力値---" << endl;
+	VectorPrint(InputValueAry);
+	cout << "--出力値---" << endl;
+	VectorPrint(OutputValueAry);
+
+	ofstream ofs( filename ); 
+
+	//書き込み
+	ofs << endl;
+	ofs << "x axis" << "," << "y axis" << endl;
+	
+	/* どうしていいかわからんので入力値の点の数だけ見ている */
+	for(int i = 0; i < InputValueAry.size(); i++)
+	{
+		ofs << InputValueAry[i] << "," << OutputValueAry[i] << endl;
+	}
+}
+
+template <typename T> void VectorPrint(vector<T> IsThrown)
+{
+	for(int i = 0; i < IsThrown.size(); i++)
+	{
+		cout << IsThrown[i] << endl;
 	}
 	cout << endl;
 }
-	
+
+
+
+
+
+
+
+
+
+
+
