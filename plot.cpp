@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <fstream>
+#include <math.h>
 using namespace std;
 
 vector <char> RPN(string formula);	/* 入力された式を逆ポーランド記法に変換する */		
@@ -13,23 +14,31 @@ double CalcResult(vector <char> converted, double value);	/* 変換後の式で�
 
 int main()
  {
- 	string formula = "1/(x+1)";
+ 	string formula = "x ^ 5";
+ 	cout << formula << endl;
+ 	VectorPrint(RPN(formula));
  	string filename = "test.csv";
- 	PlotPoint(0.0, 10.0, 0.1, formula, filename);
+ 	PlotPoint(0.1, 1.0, 0.01, formula, filename);
 	return 0;
 }	
 
 vector <char> RPN(string formula)
 {
-	map<char, int> op; /* キー (単語) がchar, 値 (番号) がint */
-	op.insert( map<int, char>::value_type('(', 1));
-	op.insert( map<int, char>::value_type('+', 2));
-	op.insert( map<int, char>::value_type('-', 2));
-	op.insert( map<int, char>::value_type('*', 4));
-	op.insert( map<int, char>::value_type('/', 4));
+	map<char, int> op; /* キー (単語) がchar, 値 (わりあて番号) がint */
+	op.insert(map<int, char>::value_type('(', 1));
+	op.insert(map<int, char>::value_type('+', 2));
+	op.insert(map<int, char>::value_type('-', 2));
+	op.insert(map<int, char>::value_type('*', 3));
+	op.insert(map<int, char>::value_type('/', 3));
+	op.insert(map<int, char>::value_type('^', 4)); //べき乗	
 
 	stack <char> operand; /* 演算子入れるスタック */
 	vector<char> result; /* 数字入れる文字列 */
+
+	for (int i = 0; i <(formula.size()); i++)
+	{
+
+	}
 	
 	for (int i = 0; i < (formula.size()); i++)	/* 式から1トークン取り出す */
 	{
@@ -140,6 +149,14 @@ double CalcResult(vector <char> converted, double value)
 			calc.pop();
 			calc.push(b / a);
 		}
+		else if(converted[i] == '^')
+		{
+			a = calc.top();
+			calc.pop();
+			b = calc.top();
+			calc.pop();
+			calc.push(pow(b, a));
+		}
 		else
 		{
 			if('0' <=  converted[i] && converted[i] <= '9')
@@ -171,10 +188,6 @@ void PlotPoint(double init, double end, double interval, string formula, string 
 
 		InputValue += interval;
 	}
-	cout << "--入力値---" << endl;
-	VectorPrint(InputValueAry);
-	cout << "--出力値---" << endl;
-	VectorPrint(OutputValueAry);
 
 	ofstream ofs( filename ); 
 
@@ -193,7 +206,7 @@ template <typename T> void VectorPrint(vector<T> IsThrown)
 {
 	for(int i = 0; i < IsThrown.size(); i++)
 	{
-		cout << IsThrown[i] << endl;
+		cout << IsThrown[i];
 	}
 	cout << endl;
 }
