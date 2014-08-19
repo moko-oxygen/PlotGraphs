@@ -14,32 +14,33 @@ double CalcResult(vector <char> converted, double value);	/* 変換後の式で�
 
 int main()
  {
- 	string formula = "x ^ 5";
+ 	string formula = "(-3+4)*(-3+5)";
  	cout << formula << endl;
  	VectorPrint(RPN(formula));
  	string filename = "test.csv";
- 	PlotPoint(0.1, 1.0, 0.01, formula, filename);
+ 	PlotPoint(1.0, 5.0, 1.0, formula, filename);
+ 	int i;
+ 	cin >> i;
 	return 0;
 }	
 
 vector <char> RPN(string formula)
 {
 	map<char, int> op; /* キー (単語) がchar, 値 (わりあて番号) がint */
-	op.insert(map<int, char>::value_type('(', 1));
-	op.insert(map<int, char>::value_type('+', 2));
-	op.insert(map<int, char>::value_type('-', 2));
-	op.insert(map<int, char>::value_type('*', 3));
-	op.insert(map<int, char>::value_type('/', 3));
-	op.insert(map<int, char>::value_type('^', 4)); //べき乗	
-
+	op.insert(map<char, int>::value_type('(', 1));
+	op.insert(map<char, int>::value_type('+', 2));
+	op.insert(map<char, int>::value_type('-', 2));
+	op.insert(map<char, int>::value_type('*', 3));
+	op.insert(map<char, int>::value_type('/', 3));
+	op.insert(map<char, int>::value_type('_', 4)); /* 単項マイナス演算子 */
+ 
 	stack <char> operand; /* 演算子入れるスタック */
 	vector<char> result; /* 数字入れる文字列 */
 
-	for (int i = 0; i <(formula.size()); i++)
-	{
-
-	}
+	bool mode = true; /* 値モードと演算子モードの切り替え用　初期値は true (値) */
 	
+	//cout << "map読むところまではきた？" ;
+
 	for (int i = 0; i < (formula.size()); i++)	/* 式から1トークン取り出す */
 	{
 		if(formula[i] == ' ')
@@ -52,6 +53,7 @@ vector <char> RPN(string formula)
 		}
 		else if(formula[i] == ')')	/* 右括弧か？ */	
 		{
+			mode = false;
 			while(1)
 			{
 				if(operand.empty())
@@ -73,22 +75,29 @@ vector <char> RPN(string formula)
 		}
 		else if(formula[i] == '(')	/* 左括弧か？*/
 		{
+			mode = true;
 			operand.push(formula[i]);
 		}
 		else
 		{
+			//cout << "演算子と判定" << endl;
 			while(1)
 			{
-				if(operand.empty())
+				if((mode == true)&&(formula[i] == '-'))
+				{
+					//cout << "単項演算子? " << endl;
+					operand.push('_');
+					break;
+				}
+				else if(operand.empty())
 				{
 					operand.push(formula[i]);
 					break;
 				}
-				else if(op[formula[i]] <= op[operand.top()])
-				/* スタック最上段の演算子よりトークンの演算子の優先順位が低いか、同じであるとき */
+				else if(op[formula[i]] <= op[operand.top()]) /* スタック最上段の演算子よりトークンの演算子の優先順位が低いか、同じであるとき */
 				{
 					result.push_back(operand.top());
-					operand.pop();			
+					operand.pop();
 				}
 				else
 				{
@@ -96,6 +105,7 @@ vector <char> RPN(string formula)
 					break;
 				}
 			}
+			mode = true;
 		}
 	}
 
@@ -113,6 +123,7 @@ double CalcResult(vector <char> converted, double value)
 	stack <double> calc;
 	double a;
 	double b;
+	bool minus = false;
 
 	for(int i = 0; i < (converted.size()); i++)
 	{
@@ -149,19 +160,17 @@ double CalcResult(vector <char> converted, double value)
 			calc.pop();
 			calc.push(b / a);
 		}
-		else if(converted[i] == '^')
+		else if(converted[i] == '_')	/* 単項マイナス演算子ちゃん！ */
 		{
 			a = calc.top();
 			calc.pop();
-			b = calc.top();
-			calc.pop();
-			calc.push(pow(b, a));
+			calc.push(-a); /* 符号反転だドン */
 		}
 		else
 		{
 			if('0' <=  converted[i] && converted[i] <= '9')
 			{
-				calc.push((double)(converted[i] - '0'));	/* char -> int へのキャストはこれしかない（死）*/
+				calc.push((double)(converted[i] - '0'));				/* char -> int へのキャストはこれしかない（死）*/
 			}
 			else if(converted[i] == 'x')
 			{
@@ -194,6 +203,8 @@ void PlotPoint(double init, double end, double interval, string formula, string 
 	//書き込み
 	ofs << endl;
 	ofs << "x axis" << "," << "y axis" << endl;
+
+	VectorPrint(OutputValueAry);
 	
 	/* どうしていいかわからんので入力値の点の数だけ見ている */
 	for(int i = 0; i < InputValueAry.size(); i++)
@@ -206,18 +217,7 @@ template <typename T> void VectorPrint(vector<T> IsThrown)
 {
 	for(int i = 0; i < IsThrown.size(); i++)
 	{
-		cout << IsThrown[i];
+		cout << IsThrown[i] << ", " ;
 	}
 	cout << endl;
 }
-
-
-
-
-
-
-
-
-
-
-
