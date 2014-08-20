@@ -14,7 +14,7 @@ double CalcResult(vector <char> converted, double value);	/* 変換後の式で�
 
 int main()
  {
- 	string formula = "(-3+4)*(-3+5)";
+ 	string formula = "-3-3 * (5 + x)";
  	cout << formula << endl;
  	VectorPrint(RPN(formula));
  	string filename = "test.csv";
@@ -33,6 +33,7 @@ vector <char> RPN(string formula)
 	op.insert(map<char, int>::value_type('*', 3));
 	op.insert(map<char, int>::value_type('/', 3));
 	op.insert(map<char, int>::value_type('_', 4)); /* 単項マイナス演算子 */
+	op.insert(map<char, int>::value_type('^', 4)); /* 累乗 */
  
 	stack <char> operand; /* 演算子入れるスタック */
 	vector<char> result; /* 数字入れる文字列 */
@@ -50,6 +51,7 @@ vector <char> RPN(string formula)
 		else if(('0' <=  formula[i] && formula[i] <= '9')||(formula[i] == 'x')) /* 数字または変数xのとき */
 		{
 			result.push_back(formula[i]); /* resultベクタに入れる */
+			mode = false; /* 演算子モードへ */
 		}
 		else if(formula[i] == ')')	/* 右括弧か？ */	
 		{
