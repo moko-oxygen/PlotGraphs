@@ -14,13 +14,15 @@ double CalcResult(vector <char> converted, double value);	/* 変換後の式で�
 
 int main()
  {
- 	string formula = "-3-3 * (5 + x)";
- 	cout << formula << endl;
- 	VectorPrint(RPN(formula));
- 	string filename = "test.csv";
- 	PlotPoint(1.0, 5.0, 1.0, formula, filename);
- 	int i;
- 	cin >> i;
+ 	string formula;
+ 	cout << "演算を終えるときは「end」と入力" << endl;
+	while(getline(cin, formula))
+ 	{
+		if(formula == "end") break;
+	 	VectorPrint(RPN(formula));
+	 	string filename = "test.csv";
+	 	PlotPoint(1.0, 10.0, 1.0, formula, filename);
+	}
 	return 0;
 }	
 
@@ -32,8 +34,9 @@ vector <char> RPN(string formula)
 	op.insert(map<char, int>::value_type('-', 2));
 	op.insert(map<char, int>::value_type('*', 3));
 	op.insert(map<char, int>::value_type('/', 3));
-	op.insert(map<char, int>::value_type('_', 4)); /* 単項マイナス演算子 */
 	op.insert(map<char, int>::value_type('^', 4)); /* 累乗 */
+	op.insert(map<char, int>::value_type('_', 5)); /* 単項マイナス演算子 */
+
  
 	stack <char> operand; /* 演算子入れるスタック */
 	vector<char> result; /* 数字入れる文字列 */
@@ -157,10 +160,22 @@ double CalcResult(vector <char> converted, double value)
 		{
 			a = calc.top();
 			calc.pop();
-			if (a == 0) break;
+			if (a == 0)
+				{
+					cout << "おお勇者よ、0で割るとは情けない" << endl;
+					break;
+				}
 			b = calc.top();
 			calc.pop();
 			calc.push(b / a);
+		}
+		else if(converted[i] == '^')
+		{
+			a = calc.top();
+			calc.pop();
+			b = calc.top();
+			calc.pop();
+			calc.push(pow(b, a));
 		}
 		else if(converted[i] == '_')	/* 単項マイナス演算子ちゃん！ */
 		{
